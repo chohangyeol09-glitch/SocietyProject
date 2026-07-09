@@ -175,8 +175,16 @@ namespace rayzngames
 		private void HandleEngine()
 		{
 			rearWheel.motorTorque = Braking ? 0f : VerticalInput * motorForce;
-			float force = Braking ? brakeForce : 0f;
-			ApplyBraking(force);
+			if (!Braking && Mathf.Abs(VerticalInput) < 0.05f)
+			{
+				rearWheel.brakeTorque = engineBrakePower;
+				frontWheel.brakeTorque = engineBrakePower * 0.5f; 
+			}
+			else
+			{
+				float force = Braking ? brakeForce : 0f;
+				ApplyBraking(force);
+			}
 		}
 		private void ApplyBraking(float brakeForce)
 		{
