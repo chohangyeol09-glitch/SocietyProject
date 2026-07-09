@@ -9,6 +9,7 @@ namespace CHG.Scripts
     {
 
         public event Action<Vector2> OnMoved;
+        public event Action OnMovedEnded;
         public event Action OnStopStated;
         public event Action OnStopEnded;
         
@@ -32,6 +33,8 @@ namespace CHG.Scripts
         {
             if (context.performed)
                 OnMoved?.Invoke(context.ReadValue<Vector2>());
+            if  (context.canceled)
+                OnMovedEnded?.Invoke();
         }
 
         public void OnStop(InputAction.CallbackContext context)
