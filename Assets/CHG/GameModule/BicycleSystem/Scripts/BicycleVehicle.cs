@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Collections;
 
 namespace rayzngames
 {
@@ -27,6 +28,8 @@ namespace rayzngames
 		[Range(0, 1)] public float frontBrakePower = 1f;
 		[Tooltip("The braking power used on the rear wheel, the moment braking is enabled. (0 = no braking / 1 = brakeforce)")]
 		[Range(0, 1)] public float rearBrakePower = 1f;
+
+		public float engineBrakePower = 15f;
 
 		[Tooltip("Adjust this paameter to add an offset to the center of gravity")]
 		public Vector3 COG;
@@ -111,6 +114,19 @@ namespace rayzngames
 			//To stop bike from Jittering
 			frontWheel.ConfigureVehicleSubsteps(5, 12, 15);
 			rearWheel.ConfigureVehicleSubsteps(5, 12, 15);
+
+			StartCoroutine(DebugCoroutine());
+		}
+
+		private IEnumerator DebugCoroutine()
+		{
+			while (true)
+			{
+				
+			yield return new WaitForSeconds(1f);
+			Debug.Log($"vertical: {VerticalInput}");
+			Debug.Log($"horizontal: {HorizontalInput}");
+			}
 		}
 
 
@@ -127,6 +143,8 @@ namespace rayzngames
 			UpdateWheels();
 			EmitTrail();
 			Speed_O_Meter();			
+			
+			
 		}
 
 		public void InControl(bool state)

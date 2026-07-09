@@ -15,15 +15,22 @@ namespace rayzngames
         {
             bicycle = GetComponent<BicycleVehicle>();
             playerInput.OnMoved += HandleMoved;
+            playerInput.OnMovedEnded += HandleMovedEnd;
             playerInput.OnStopStated += HandleStopStated;
             playerInput.OnStopEnded += HandleStopEnded;
         }
 
-        
+        private void HandleMovedEnd()
+        {
+            bicycle.VerticalInput = 0;
+            bicycle.HorizontalInput = 0;
+        }
+
 
         private void HandleMoved(Vector2 evt)
         {
-            bicycle.VerticalInput
+            bicycle.VerticalInput = evt.y;
+            bicycle.HorizontalInput = evt.x;
         }
 
         private void HandleStopStated()
@@ -38,8 +45,8 @@ namespace rayzngames
         // Update is called once per frame
         void Update()
         {
-            bicycle.VerticalInput = Input.GetAxis("Vertical");
-            bicycle.HorizontalInput = Input.GetAxis("Horizontal");
+            //bicycle.VerticalInput = Input.GetAxis("Vertical");
+            //bicycle.HorizontalInput = Input.GetAxis("Horizontal");
             BrakingInput();
 
             //Extending functionality 
