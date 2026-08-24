@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -25,8 +26,15 @@ public class ObstacleManager : MonoBehaviour
     [SerializeField] private float personSpawnInterval = 4f;
     [SerializeField] private int personWaypointVisitCount = 3;
 
+    [Header("Car Cap")]
+    [SerializeField] private int maxCarCount = 6;
+    [SerializeField] private float forceReplaceDelay = 3f;
+
     private ObjectPool<CarAgent> carPool;
     private ObjectPool<PersonAgent> personPool;
+
+    private List<CarAgent> activeCars = new List<CarAgent>();
+    private bool isReplacingCar = false;
 
     void Awake()
     {
@@ -58,8 +66,36 @@ public class ObstacleManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(carSpawnInterval);
+
+            if (activeCars.Count < maxCarCount)
+            {
+                TrySpawnCar();
+            }
+            else if (!isReplacingCar)
+            {
+                StartCoroutine(ForceReplaceFarthestCar());
+            }
+        }
+    }
+
+    IEnumerator ForceReplaceFarthestCar()
+    {
+        isReplacingCar = true;
+        yield return new WaitForSeconds(forceReplaceDelay);
+
+        if (activeCars.Count >= maxCarCount)
+        {
+            var farthest = activeCars
+                .OrderByDescending(c => Vector3.Distance(c.transform.position, player.position))
+                .FirstOrDefault();
+
+            if (farthest != null)
+                RemoveCar(farthest);
+
             TrySpawnCar();
         }
+
+        isReplacingCar = false;
     }
 
     IEnumerator SpawnPeopleRoutine()
@@ -73,6 +109,8 @@ public class ObstacleManager : MonoBehaviour
 
     void TrySpawnCar()
     {
+        if (activeCars.Count >= maxCarCount) return;
+
         var candidates = carSpawnPosition
             .Where(p =>
             {
@@ -87,6 +125,21 @@ public class ObstacleManager : MonoBehaviour
         var car = carPool.Get();
         car.transform.SetPositionAndRotation(point.position, point.rotation);
         car.Init(player, carWaypoints, despawnRadius, ReleaseCar);
+
+        activeCars.Add(car);
+    }
+
+    void RemoveCar(CarAgent car)
+    {
+        activeCars.Remove(car);
+        carPool.Release(car);
+    }
+
+    void ReleaseCar(GameObject obj)
+    {
+        var car = obj.GetComponent<CarAgent>();
+        activeCars.Remove(car);
+        carPool.Release(car);
     }
 
     void TrySpawnPerson()
@@ -113,7 +166,6 @@ public class ObstacleManager : MonoBehaviour
         person.Init(route, ReleasePerson);
     }
 
-    void ReleaseCar(GameObject obj) => carPool.Release(obj.GetComponent<CarAgent>());
     void ReleasePerson(GameObject obj) => personPool.Release(obj.GetComponent<PersonAgent>());
 
     void OnDrawGizmosSelected()
