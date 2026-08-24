@@ -83947,6 +83947,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 2899703873313818472, guid: 8a26a00efc56f2af6b733c83e16d6219, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 3101171021974167594, guid: 8a26a00efc56f2af6b733c83e16d6219, type: 3}
       propertyPath: m_Layer
       value: 8
@@ -287750,9 +287754,11 @@ MonoBehaviour:
   safeZoneRadius: 35
   spawnZoneRadius: 75
   despawnRadius: 110
-  carSpawnInterval: 1
-  personSpawnInterval: 2
+  carSpawnInterval: 2
+  personSpawnInterval: 2.5
   personWaypointVisitCount: 3
+  maxCarCount: 6
+  forceReplaceDelay: 3
 --- !u!4 &1893900318
 Transform:
   m_ObjectHideFlags: 0
