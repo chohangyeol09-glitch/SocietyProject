@@ -12,6 +12,7 @@ namespace rayzngames
 		public float HorizontalInput { get; set; }
 		public float VerticalInput { get; set; }
 		public bool Braking { get; set; }
+		public bool Drifting { get; set; }
 		public bool IsInControl { get; private set; }
 		public bool slipFront { get; private set; }
 		public bool slipRear{ get; private set; }
@@ -30,6 +31,16 @@ namespace rayzngames
 		[Range(0, 1)] public float rearBrakePower = 1f;
 
 		public float engineBrakePower = 15f;
+
+		[Space(20)]
+		[Header("Drift")]
+		[Space(5)]
+		[Tooltip("드리프트 중 뒷바퀴 옆미끄럼 마찰 배율. 낮을수록 뒤가 잘 미끄러진다 (0=완전 미끄럼, 1=평소와 동일)")]
+		[Range(0f, 1f)] public float driftSidewaysStiffness = 0.4f;
+		[Tooltip("드리프트 중 조향각 배율. 속도에 의한 조향 감소를 무시하고 더 꺾이게 한다")]
+		[Range(1f, 2f)] public float driftSteerMultiplier = 1.5f;
+		[Tooltip("드리프트 중 최대 조향각 상한(도). 고속에서 과도하게 꺾여 튕겨나가는 것을 막는다. 낮출수록 안정적")]
+		[Range(5f, 60f)] public float driftMaxSteeringAngle = 30f;
 
 		[Tooltip("Adjust this paameter to add an offset to the center of gravity")]
 		public Vector3 COG;
@@ -90,6 +101,8 @@ namespace rayzngames
 		public float currentSpeed { get; private set; }
 		protected private WheelHit frontInfo;
 		protected private WheelHit rearInfo;
+		//드리프트가 아닐 때 복원하기 위한 뒷바퀴 옆마찰 원본값
+		private WheelFrictionCurve _rearSidewaysDefault;
 		
 		void Awake()
 		{
@@ -114,6 +127,9 @@ namespace rayzngames
 			//To stop bike from Jittering
 			frontWheel.ConfigureVehicleSubsteps(5, 12, 15);
 			rearWheel.ConfigureVehicleSubsteps(5, 12, 15);
+
+			//드리프트 복원용 뒷바퀴 옆마찰 원본값 캐싱
+			_rearSidewaysDefault = rearWheel.sidewaysFriction;
 
 			StartCoroutine(DebugCoroutine());
 		}
@@ -140,9 +156,10 @@ namespace rayzngames
 				LeanOnTurnLocal();
 				UpdateHandles();
 			}
+			HandleDrift();
 			UpdateWheels();
 			EmitTrail();
-			Speed_O_Meter();			
+			Speed_O_Meter();
 			
 			
 		}
@@ -192,6 +209,16 @@ namespace rayzngames
 			rearWheel.brakeTorque = brakeForce * rearBrakePower;
 		}
 
+		//드리프트: 뒷바퀴 옆미끄럼 마찰을 줄여 뒤가 미끄러지게 한다. 제동 토크는 걸지 않아 속도를 유지한다.
+		private void HandleDrift()
+		{
+			WheelFrictionCurve friction = rearWheel.sidewaysFriction;
+			friction.stiffness = Drifting
+				? _rearSidewaysDefault.stiffness * driftSidewaysStiffness
+				: _rearSidewaysDefault.stiffness;
+			rearWheel.sidewaysFriction = friction;
+		}
+
 		//This replaces the (Magic numbers) that controlled an exponential decay function for maxteeringAngle (maxSteering angle was not adjustable)
 		//This one allows to customize Default bike maxSteeringAngle parameters and maxSpeed allowing for better scalability for each vehicle	
 		private void MaxSteeringReductor()
@@ -204,6 +231,12 @@ namespace rayzngames
 		private void HandleSteering()
 		{
 			MaxSteeringReductor();
+			//드리프트 중에는 속도에 의한 조향 감소를 무시하고 더 크게 꺾을 수 있게 하되,
+			//고속에서 과도하게 꺾여 튕겨나가지 않도록 driftMaxSteeringAngle 로 상한을 둔다.
+			if (Drifting)
+			{
+				current_maxSteeringAngle = Mathf.Min(maxSteeringAngle * driftSteerMultiplier, driftMaxSteeringAngle);
+			}
 			currentSteeringAngle = Mathf.Lerp(currentSteeringAngle, current_maxSteeringAngle * HorizontalInput, turnSmoothing * 0.1f);
 			frontWheel.steerAngle = currentSteeringAngle;
 			//We invert Input for rotating in the correct direction
