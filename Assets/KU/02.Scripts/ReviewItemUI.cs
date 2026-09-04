@@ -4,20 +4,25 @@ using UnityEngine.UI;
 
 public class ReviewItemUI : MonoBehaviour
 {
-    [Header("∏Æ∫‰ ≈ÿΩ∫∆Æ")]
+    [Header("ÏûëÏÑ±Ïûê Ï†ïÎ≥¥")]
+    [SerializeField]
+    private Image profileIconImage;
+
     [SerializeField]
     private TMP_Text userNameText;
 
+
+    [Header("Î¶¨Î∑∞ ÎÇ¥Ïö©")]
     [SerializeField]
     private TMP_Text reviewText;
 
 
-    [Header("∫∞ ¿ÃπÃ¡ˆ")]
+    [Header("Î≥Ñ UI")]
     [SerializeField]
     private Image[] stars;
 
 
-    [Header("∫∞ Ω∫«¡∂Û¿Ã∆Æ")]
+    [Header("Î≥Ñ Ïä§ÌîÑÎùºÏù¥Ìä∏")]
     [SerializeField]
     private Sprite filledStarSprite;
 
@@ -26,21 +31,54 @@ public class ReviewItemUI : MonoBehaviour
 
 
     public void Setup(
-        string userName,
-        string content,
+        ReviewSO review,
         int starCount)
     {
-        userNameText.text = userName;
+        if (review == null)
+            return;
 
-        reviewText.text = content;
+
+        if (profileIconImage != null)
+        {
+            profileIconImage.sprite =
+                review.profileIcon;
+        }
 
 
+        if (userNameText != null)
+        {
+            userNameText.text =
+                review.userName;
+        }
+
+
+        if (reviewText != null)
+        {
+            reviewText.text =
+                review.reviewContent;
+        }
+
+
+        SetStars(starCount);
+    }
+
+
+    private void SetStars(int starCount)
+    {
         starCount =
-            Mathf.Clamp(starCount, 0, 5);
+            Mathf.Clamp(
+                starCount,
+                0,
+                5
+            );
 
 
         for (int i = 0; i < stars.Length; i++)
         {
+            if (stars[i] == null)
+                continue;
+
+
             if (i < starCount)
             {
                 stars[i].sprite =

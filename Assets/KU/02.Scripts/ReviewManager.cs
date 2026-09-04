@@ -1,100 +1,42 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ReviewManager : MonoBehaviour
+public class ReviewManager :
+    MonoSingleton<ReviewManager>
 {
-    [Serializable]
-    public class ReviewData
-    {
-        [Header("ÀÛ¼ºÀÚ ÀÌ¸§")]
-        public string userName;
-
-        [Header("¸®ºä ³»¿ë")]
-        [TextArea]
-        public string content;
-
-        [Range(0, 5)]
-        public int starCount;
-    }
+    [Header("ë“±ì¥ ê°€ëŠ¥í•œ ë¦¬ë·°")]
+    [SerializeField]
+    private List<ReviewSO> reviews =
+        new List<ReviewSO>();
 
 
-    [Header("¸®ºä ÇÁ¸®ÆÕ")]
+    [Header("ë¦¬ë·° í”„ë¦¬íŒ¹")]
     [SerializeField]
     private ReviewItemUI reviewPrefab;
 
 
-    [Header("¸®ºä°¡ »ı¼ºµÉ ºÎ¸ğ")]
+    [Header("ë¦¬ë·° ìƒì„± ìœ„ì¹˜")]
     [SerializeField]
     private Transform reviewListParent;
 
 
-    [Header("·£´ıÀ¸·Î µîÀåÇÒ ¸®ºä")]
-    [SerializeField]
-    private List<ReviewData> randomReviews =
-        new List<ReviewData>();
-
-
-    /// <summary>
-    /// ¹Ì¼Ç ¼º°ø µîÀÇ ½ÅÈ£¸¦ ¹Ş¾ÒÀ» ¶§ È£Ãâ.
-    /// µî·ÏµÈ ¸®ºä Áß ÇÏ³ª¸¦ ·£´ıÀ¸·Î »ı¼ºÇÑ´Ù.
-    /// </summary>
-    public void AddRandomReview()
+    public void AddRandomReview(
+        int starCount)
     {
-        if (randomReviews.Count == 0)
+        if (reviews.Count == 0)
         {
             Debug.LogWarning(
-                "»ı¼ºÇÒ ¸®ºä µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù."
+                "ReviewManagerì— ReviewSOê°€ ë“±ë¡ë˜ì–´ ìˆì§€ ì•ŠìŠµë‹ˆë‹¤."
             );
 
             return;
         }
 
 
-        int randomIndex =
-            UnityEngine.Random.Range(
-                0,
-                randomReviews.Count
-            );
-
-
-        ReviewData review =
-            randomReviews[randomIndex];
-
-
-        CreateReview(review);
-    }
-
-
-    /// <summary>
-    /// ¿øÇÏ´Â ¸®ºä µ¥ÀÌÅÍ¸¦ Á÷Á¢ »ı¼ºÇÒ ¶§ »ç¿ë.
-    /// ³ªÁß¿¡ ÇÃ·¹ÀÌ °á°ú¿¡ µû¸¥ ¸®ºä »ı¼º¿¡ »ç¿ëÇÒ ¼ö ÀÖÀ½.
-    /// </summary>
-    public void AddReview(
-        string userName,
-        string content,
-        int starCount)
-    {
-        ReviewData review =
-            new ReviewData
-            {
-                userName = userName,
-                content = content,
-                starCount = starCount
-            };
-
-
-        CreateReview(review);
-    }
-
-
-    private void CreateReview(
-        ReviewData review)
-    {
         if (reviewPrefab == null)
         {
             Debug.LogError(
-                "ReviewPrefabÀÌ ¿¬°áµÇÁö ¾Ê¾Ò½À´Ï´Ù."
+                "ReviewPrefabì´ ì—°ê²°ë˜ì–´ ìˆì§€ ì•ŠìŠµë‹ˆë‹¤."
             );
 
             return;
@@ -104,11 +46,37 @@ public class ReviewManager : MonoBehaviour
         if (reviewListParent == null)
         {
             Debug.LogError(
-                "ReviewListParent°¡ ¿¬°áµÇÁö ¾Ê¾Ò½À´Ï´Ù."
+                "ReviewListParentê°€ ì—°ê²°ë˜ì–´ ìˆì§€ ì•ŠìŠµë‹ˆë‹¤."
             );
 
             return;
         }
+
+
+        int randomIndex =
+            Random.Range(
+                0,
+                reviews.Count
+            );
+
+
+        ReviewSO selectedReview =
+            reviews[randomIndex];
+
+
+        CreateReview(
+            selectedReview,
+            starCount
+        );
+    }
+
+
+    private void CreateReview(
+        ReviewSO review,
+        int starCount)
+    {
+        if (review == null)
+            return;
 
 
         ReviewItemUI newReview =
@@ -119,9 +87,20 @@ public class ReviewManager : MonoBehaviour
 
 
         newReview.Setup(
-            review.userName,
-            review.content,
-            review.starCount
+            review,
+            starCount
         );
+
+
+        Debug.Log(
+            $"ë¦¬ë·° ìƒì„± : " +
+            $"{review.userName} / " +
+            $"ë³„ {starCount}ê°œ"
+        );
+
+
+        // ìƒˆ ë¦¬ë·° ì•Œë¦¼
+        SmartPhoneManager.Instance
+            .PlayNotificationVibration();
     }
 }

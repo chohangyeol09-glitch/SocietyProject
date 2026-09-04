@@ -3,18 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class DeliveryAppManager : MonoBehaviour
+public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
 {
+    public enum DeliveryMenuType
+    {
+        Review,
+        Map,
+        Mission
+    }
+
+
     [Serializable]
     public class DeliveryMenu
     {
-        [Header("¸Ş´º ÀÌ¸§")]
+        [Header("ë©”ë‰´ ì¢…ë¥˜")]
+        public DeliveryMenuType menuType;
+
+        [Header("ë©”ë‰´ ì´ë¦„")]
         public string menuName;
 
-        [Header("¸Ş´º ¼±ÅÃ À§Ä¡")]
+        [Header("ë©”ë‰´ ì„ íƒ ìœ„ì¹˜")]
         public RectTransform menuTransform;
 
-        [Header("¼±ÅÃ ½Ã ÄÑÁú ¿ÀºêÁ§Æ®")]
+        [Header("ì„ íƒí•˜ë©´ ì¼œì§ˆ ì˜¤ë¸Œì íŠ¸")]
         public GameObject contentObject;
     }
 
@@ -24,13 +35,18 @@ public class DeliveryAppManager : MonoBehaviour
     private AppManager appManager;
 
 
-    [Header("¹è´Ş¾Û ¸Ş´º")]
+    [Header("Mission Manager")]
+    [SerializeField]
+    private MissionManager missionManager;
+
+
+    [Header("ë°°ë‹¬ì•± ë©”ë‰´")]
     [SerializeField]
     private List<DeliveryMenu> menus =
         new List<DeliveryMenu>();
 
 
-    [Header("¼±ÅÃ Ç¥½Ã")]
+    [Header("ì„ íƒ í‘œì‹œ")]
     [SerializeField]
     private RectTransform selectionFrame;
 
@@ -39,16 +55,40 @@ public class DeliveryAppManager : MonoBehaviour
 
     private int openedFrame;
 
+    private bool isAcceptSelected = false;
+
 
     private void OnEnable()
     {
-        openedFrame = Time.frameCount;
+        openedFrame =
+            Time.frameCount;
+
 
         selectedIndex = 0;
 
+        isAcceptSelected = false;
+
+
         CloseAllContents();
 
-        UpdateSelection();
+        UpdateMenuSelection();
+
+
+        if (missionManager != null)
+        {
+            missionManager.MissionAccepted +=
+                OnMissionAccepted;
+        }
+    }
+
+
+    private void OnDisable()
+    {
+        if (missionManager != null)
+        {
+            missionManager.MissionAccepted -=
+                OnMissionAccepted;
+        }
     }
 
 
@@ -58,17 +98,31 @@ public class DeliveryAppManager : MonoBehaviour
             return;
 
 
-        // È¨ È­¸é¿¡¼­ Enter·Î ¹è´Ş¾ÛÀ» ¿¬
-        // °°Àº ÇÁ·¹ÀÓÀÇ Enter ÀÔ·Â ¹æÁö
         if (Time.frameCount == openedFrame)
             return;
 
 
-        HandleNavigation();
-        HandleSelect();
+        // ìˆ˜ë½ ì˜ì—­ì„ ì„ íƒí•˜ê³  ìˆëŠ” ìƒíƒœ
+        if (isAcceptSelected)
+        {
+            HandleAcceptSelection();
+
+            return;
+        }
 
 
-        // ¹è´Ş¾Û¿¡¼­ ESC ¡æ ÇÚµåÆù È¨
+        HandleMenuNavigation();
+
+        HandleMenuSelect();
+
+
+        // í˜„ì¬ Mission ë©”ë‰´ì—ì„œ ì•„ë˜ë¡œ ë‚´ë ¤ê°€ê¸°
+        if (Keyboard.current.downArrowKey.wasPressedThisFrame)
+        {
+            TryMoveToAccept();
+        }
+
+
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             appManager.OpenHome();
@@ -76,30 +130,17 @@ public class DeliveryAppManager : MonoBehaviour
     }
 
 
-    private void HandleNavigation()
+    private void HandleMenuNavigation()
     {
         if (Keyboard.current.leftArrowKey.wasPressedThisFrame)
         {
             MoveSelection(-1);
         }
 
+
         if (Keyboard.current.rightArrowKey.wasPressedThisFrame)
         {
             MoveSelection(1);
-        }
-    }
-
-
-    private void HandleSelect()
-    {
-        bool enterPressed =
-            Keyboard.current.enterKey.wasPressedThisFrame ||
-            Keyboard.current.numpadEnterKey.wasPressedThisFrame;
-
-
-        if (enterPressed)
-        {
-            OpenSelectedMenu();
         }
     }
 
@@ -115,7 +156,8 @@ public class DeliveryAppManager : MonoBehaviour
 
         if (selectedIndex < 0)
         {
-            selectedIndex = menus.Count - 1;
+            selectedIndex =
+                menus.Count - 1;
         }
 
 
@@ -125,11 +167,153 @@ public class DeliveryAppManager : MonoBehaviour
         }
 
 
-        UpdateSelection();
+        UpdateMenuSelection();
     }
 
 
-    private void UpdateSelection()
+    private void HandleMenuSelect()
+    {
+        bool enterPressed =
+            Keyboard.current.enterKey.wasPressedThisFrame ||
+            Keyboard.current.numpadEnterKey.wasPressedThisFrame;
+
+
+        if (!enterPressed)
+            return;
+
+
+        OpenSelectedMenu();
+    }
+
+
+    private void OpenSelectedMenu()
+    {
+        if (menus.Count == 0)
+            return;
+
+
+        DeliveryMenu menu =
+            menus[selectedIndex];
+
+
+        CloseAllContents();
+
+
+        if (menu.contentObject != null)
+        {
+            menu.contentObject.SetActive(true);
+        }
+
+
+        Debug.Log(
+            $"ë°°ë‹¬ì•± ë©”ë‰´ ì„ íƒ : {menu.menuName}"
+        );
+    }
+
+
+    private void TryMoveToAccept()
+    {
+        if (menus.Count == 0)
+            return;
+
+
+        DeliveryMenu menu =
+            menus[selectedIndex];
+
+
+        // í˜„ì¬ ìƒë‹¨ ì„ íƒì´ Missionì´ ì•„ë‹ˆë©´ ì•ˆ ë‚´ë ¤ê°
+        if (menu.menuType != DeliveryMenuType.Mission)
+            return;
+
+
+        // MissionObjectë¥¼ ë¨¼ì € Enterë¡œ ì—´ì–´ë‘” ìƒíƒœì—¬ì•¼ í•¨
+        if (menu.contentObject == null ||
+            !menu.contentObject.activeSelf)
+        {
+            return;
+        }
+
+
+        if (missionManager == null)
+            return;
+
+
+        if (!missionManager.HasActiveMission)
+            return;
+
+
+        RectTransform acceptTransform =
+            missionManager.GetAcceptTransform();
+
+
+        if (acceptTransform == null)
+            return;
+
+
+        isAcceptSelected = true;
+
+
+        if (selectionFrame != null)
+        {
+            selectionFrame.position =
+                acceptTransform.position;
+        }
+    }
+
+
+    private void HandleAcceptSelection()
+    {
+        // â†‘ë¥¼ ëˆ„ë¥´ë©´ ë‹¤ì‹œ ìƒë‹¨ Mission ì„ íƒìœ¼ë¡œ
+        if (Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
+            ReturnToMenu();
+
+            return;
+        }
+
+
+        // Enter = ìˆ˜ë½
+        bool enterPressed =
+            Keyboard.current.enterKey.wasPressedThisFrame ||
+            Keyboard.current.numpadEnterKey.wasPressedThisFrame;
+
+
+        if (enterPressed)
+        {
+            if (missionManager != null)
+            {
+                missionManager.AcceptCurrentMission();
+            }
+
+            return;
+        }
+
+
+        // ESCë„ ì¼ë‹¨ ìƒë‹¨ ë©”ë‰´ë¡œ ë³µê·€
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            ReturnToMenu();
+        }
+    }
+
+
+    private void OnMissionAccepted(MissionSO mission)
+    {
+        // í”„ë¦¬íŒ¹ì´ ì‚¬ë¼ì¡Œìœ¼ë¯€ë¡œ
+        // SelectionFrameì„ ë‹¤ì‹œ Mission íƒ­ìœ¼ë¡œ ì˜¬ë¦¼
+        ReturnToMenu();
+    }
+
+
+    private void ReturnToMenu()
+    {
+        isAcceptSelected = false;
+
+        UpdateMenuSelection();
+    }
+
+
+    private void UpdateMenuSelection()
     {
         if (menus.Count == 0)
             return;
@@ -148,33 +332,6 @@ public class DeliveryAppManager : MonoBehaviour
 
         selectionFrame.position =
             target.position;
-    }
-
-
-    private void OpenSelectedMenu()
-    {
-        if (menus.Count == 0)
-            return;
-
-
-        DeliveryMenu selectedMenu =
-            menus[selectedIndex];
-
-
-        Debug.Log(
-            $"¹è´Ş¾Û ¸Ş´º ¼±ÅÃ : {selectedMenu.menuName}"
-        );
-
-
-        // ¸®ºä / Áöµµ / ÀÓ¹« ¸ğµÎ ²ô±â
-        CloseAllContents();
-
-
-        // ¼±ÅÃÇÑ °Í ÇÏ³ª¸¸ ÄÑ±â
-        if (selectedMenu.contentObject != null)
-        {
-            selectedMenu.contentObject.SetActive(true);
-        }
     }
 
 

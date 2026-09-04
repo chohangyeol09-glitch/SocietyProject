@@ -4,42 +4,42 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class AppManager : MonoBehaviour
+public class AppManager : MonoSingleton<AppManager>
 {
     [Serializable]
     public class PhoneApp
     {
-        [Header("¾Û ÀÌ¸§")]
+        [Header("ì•± ì´ë¦„")]
         public string appName;
 
-        [Header("È¨ È­¸é ¾ÆÀÌÄÜ À§Ä¡")]
+        [Header("í™ˆ í™”ë©´ ì•„ì´ì½˜ ìœ„ì¹˜")]
         public RectTransform iconTransform;
 
-        [Header("¾ÆÀÌÄÜ ÀÌ¹ÌÁö")]
+        [Header("í™ˆ í™”ë©´ ì•„ì´ì½˜ ì´ë¯¸ì§€")]
         public Image iconImage;
 
-        [Header("¾Û ÀüÃ¼ UI")]
+        [Header("ì•± ì „ì²´ UI")]
         public GameObject appScreenObject;
     }
 
 
-    [Header("¾Û ¸ñ·Ï")]
+    [Header("ì•± ëª©ë¡")]
     [SerializeField]
     private List<PhoneApp> apps =
         new List<PhoneApp>();
 
 
-    [Header("È¨ È­¸é ÀüÃ¼")]
+    [Header("í™ˆ í™”ë©´ ì „ì²´")]
     [SerializeField]
     private GameObject homeScreen;
 
 
-    [Header("È¨ È­¸é ¼±ÅÃ Ç¥½Ã")]
+    [Header("í™ˆ í™”ë©´ ì„ íƒ í‘œì‹œ")]
     [SerializeField]
     private RectTransform selectionFrame;
 
 
-    [Header("¾ÆÀÌÄÜ Åõ¸íµµ")]
+    [Header("ì•„ì´ì½˜ íˆ¬ëª…ë„")]
     [Range(0f, 1f)]
     [SerializeField]
     private float selectedAlpha = 1f;
@@ -68,8 +68,8 @@ public class AppManager : MonoBehaviour
             return;
 
 
-        // ¾ÛÀÌ ½ÇÇà ÁßÀÌ¸é
-        // AppManager´Â ´õ ÀÌ»ó ÀÔ·ÂÀ» Ã³¸®ÇÏÁö ¾ÊÀ½.
+        // ì•±ì´ ì‹¤í–‰ ì¤‘ì´ë©´
+        // AppManagerëŠ” ë” ì´ìƒ ì…ë ¥ì„ ì²˜ë¦¬í•˜ì§€ ì•ŠìŒ.
         if (isAppOpened)
             return;
 
@@ -127,7 +127,7 @@ public class AppManager : MonoBehaviour
             targetIndex / ColumnCount;
 
 
-        // ÁÂ¿ì ÀÌµ¿ Áß ´Ù¸¥ ÁÙ·Î ³Ñ¾î°¡Áö ¾Êµµ·Ï ¹æÁö
+        // ì¢Œìš° ì´ë™ ì¤‘ ë‹¤ë¥¸ ì¤„ë¡œ ë„˜ì–´ê°€ì§€ ì•Šë„ë¡ ë°©ì§€
         if (currentRow != targetRow)
             return;
 
@@ -182,7 +182,7 @@ public class AppManager : MonoBehaviour
             return;
 
 
-        // SelectionFrame ÀÌµ¿
+        // SelectionFrame ì´ë™
         if (selectionFrame != null)
         {
             RectTransform target =
@@ -197,7 +197,7 @@ public class AppManager : MonoBehaviour
         }
 
 
-        // ¸ğµç ¾Û ¾ÆÀÌÄÜ Åõ¸íµµ °»½Å
+        // ëª¨ë“  ì•± ì•„ì´ì½˜ íˆ¬ëª…ë„ ê°±ì‹ 
         for (int i = 0; i < apps.Count; i++)
         {
             if (apps[i].iconImage == null)
@@ -208,7 +208,7 @@ public class AppManager : MonoBehaviour
                 apps[i].iconImage.color;
 
 
-            // ¼±ÅÃµÈ ¾Û¸¸ 100%
+            // ì„ íƒëœ ì•±ë§Œ 100%
             if (i == selectedIndex)
             {
                 iconColor.a =
@@ -216,7 +216,7 @@ public class AppManager : MonoBehaviour
             }
             else
             {
-                // ³ª¸ÓÁö´Â 50%
+                // ë‚˜ë¨¸ì§€ëŠ” 50%
                 iconColor.a =
                     unselectedAlpha;
             }
@@ -239,22 +239,22 @@ public class AppManager : MonoBehaviour
 
 
         Debug.Log(
-            $"¾Û ½ÇÇà : {selectedApp.appName}"
+            $"ì•± ì‹¤í–‰ : {selectedApp.appName}"
         );
 
 
-        // È¨ È­¸é ÀüÃ¼ OFF
+        // í™ˆ í™”ë©´ ì „ì²´ OFF
         if (homeScreen != null)
         {
             homeScreen.SetActive(false);
         }
 
 
-        // ´Ù¸¥ ¾Û È­¸é ÀüºÎ OFF
+        // ë‹¤ë¥¸ ì•± í™”ë©´ ì „ë¶€ OFF
         CloseAllApps();
 
 
-        // ¼±ÅÃÇÑ ¾Û¸¸ ON
+        // ì„ íƒí•œ ì•±ë§Œ ON
         if (selectedApp.appScreenObject != null)
         {
             selectedApp.appScreenObject.SetActive(true);
@@ -280,11 +280,11 @@ public class AppManager : MonoBehaviour
 
     public void OpenHome()
     {
-        // ¸ğµç ¾Û È­¸é OFF
+        // ëª¨ë“  ì•± í™”ë©´ OFF
         CloseAllApps();
 
 
-        // È¨ È­¸é¸¸ ON
+        // í™ˆ í™”ë©´ë§Œ ON
         if (homeScreen != null)
         {
             homeScreen.SetActive(true);
@@ -294,7 +294,7 @@ public class AppManager : MonoBehaviour
         isAppOpened = false;
 
 
-        // ¼±ÅÃ À§Ä¡¿Í ¾ÆÀÌÄÜ Åõ¸íµµ ´Ù½Ã Àû¿ë
+        // ì„ íƒ ìœ„ì¹˜ì™€ ì•„ì´ì½˜ íˆ¬ëª…ë„ ë‹¤ì‹œ ì ìš©
         UpdateSelection();
     }
 }
