@@ -26,21 +26,36 @@ namespace CHG.Bike
         /// <summary>충돌 순간의 상대 속도 크기(m/s). tier 계산에 쓰인 값.</summary>
         public readonly float ImpactSpeed;
 
+        /// <summary>
+        /// 충돌 면을 정면으로 파고든 속도 성분(m/s). 스치는 충돌은 작고, 정면 충돌은 ImpactSpeed 에 가깝다.
+        /// 넉백 세기 판단에는 이 값이 더 정확하다.
+        /// </summary>
+        public readonly float NormalSpeed;
+
         /// <summary>충돌 지점(월드 좌표). 파티클/사운드 스폰 위치로 사용.</summary>
         public readonly Vector3 Point;
 
-        /// <summary>충돌 면의 법선(월드). 넉백 방향 계산에 사용.</summary>
+        /// <summary>충돌 면의 법선(월드). 바이크에서 멀어지는(밀려나는) 방향으로 정렬되어 있다.</summary>
         public readonly Vector3 Normal;
+
+        /// <summary>
+        /// 밟고 서는 면(바닥/경사면)과의 충돌인지 여부. 점프 착지가 여기에 해당한다.
+        /// 넉백처럼 "벽에 부딪혔을 때만" 반응해야 하는 모듈은 이 값이 true 면 무시하면 된다.
+        /// </summary>
+        public readonly bool IsGround;
 
         /// <summary>원본 Collision. 상대 오브젝트 태그 등 추가 정보가 필요할 때 사용(널일 수 있음).</summary>
         public readonly Collision Collision;
 
-        public BikeCollisionEvent(CollisionTier tier, float impactSpeed, Vector3 point, Vector3 normal, Collision collision)
+        public BikeCollisionEvent(CollisionTier tier, float impactSpeed, Vector3 point, Vector3 normal, Collision collision,
+            float normalSpeed = 0f, bool isGround = false)
         {
             Tier = tier;
             ImpactSpeed = impactSpeed;
+            NormalSpeed = normalSpeed;
             Point = point;
             Normal = normal;
+            IsGround = isGround;
             Collision = collision;
         }
     }

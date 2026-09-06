@@ -9,35 +9,56 @@ namespace CHG.Scripts.DeliverySystem
         [SerializeField] private GameObject[] highlightObjs;
         
         public string DestinationID;
+        public string DisplayName => DestinationID;
         public event Action OnClear;
         public event Action OnFail;
 
-        private float _timeLimit;
+        private bool _isActive;
+
+        public bool IsActive => _isActive;
         
         
         private void Awake()
         {
-            foreach (GameObject obj in highlightObjs)
-            {
-                obj.SetActive(false);
-                Debug.Log(obj.name);
-            }
+            SetHighlight(false);
         }
 
-        public void Active(float timeLimit)
+        public void Active()
         {
-            _timeLimit = timeLimit;
+            _isActive = true;
+            SetHighlight(true);
+        }
+
+        public void Deactive()
+        {
+            _isActive = false;
+            SetHighlight(false);
+        }
+
+        public void Fail()
+        {
+            if (!_isActive)
+                return;
+
+            Deactive();
+            OnFail?.Invoke();
+        }
+
+        private void SetHighlight(bool value)
+        {
             foreach (GameObject obj in highlightObjs)
-                obj.SetActive(true);
+                obj.SetActive(value);
         }
 
         private void OnTriggerEnter(Collider collision)
         {
+            if (!_isActive)
+                return;
+            
             if (collision.gameObject.CompareTag("Player"))
             {
+                Deactive();
                 OnClear?.Invoke();
-                foreach (GameObject obj in highlightObjs)
-                    obj.SetActive(false);
             }
         }
     }

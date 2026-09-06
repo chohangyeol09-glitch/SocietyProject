@@ -40,13 +40,12 @@ namespace rayzngames
 
         private void HandleStopStated()
         {
-            // Space → 드리프트 (기존 정지/브레이크 대신). 감속 없이 미끄러지며 회전.
-            bicycle.Drifting = true;
+            bicycle.Braking = true;
         }
 
         private void HandleStopEnded()
         {
-            bicycle.Drifting = false;
+            bicycle.Braking = false;
         }
         // Update is called once per frame
         void Update()

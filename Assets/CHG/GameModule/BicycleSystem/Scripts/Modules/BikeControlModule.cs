@@ -18,10 +18,14 @@ namespace CHG.Bike
         [Tooltip("플레이어가 바이크를 조종하려는 상태인지. 입력 드라이버가 세팅한다.")]
         [SerializeField] private bool playerWantsControl = true;
 
+        [Tooltip("넉백 후 이 시간이 지나도 지면을 벗어나지 못하면 조종을 강제로 복구한다 (초). 조종 불능으로 갇히는 것을 막는 안전장치")]
+        [SerializeField] private float maxLaunchTime = 2f;
+
         /// <summary>날아가는 중인지 여부. 이 동안에는 입력/회전 고정이 모두 해제된다.</summary>
         public bool IsLaunched { get; private set; }
 
         private bool _hasLeftGround;
+        private float _launchStartTime;
 
         private BicycleVehicle _bike;
 
@@ -48,6 +52,7 @@ namespace CHG.Bike
         {
             IsLaunched = true;
             _hasLeftGround = false;
+            _launchStartTime = Time.time;
         }
 
         /// <summary>강제로 제어를 즉시 복구한다(연출 취소 등).</summary>
@@ -73,6 +78,9 @@ namespace CHG.Bike
                     _hasLeftGround = true;
                 else if (_hasLeftGround)
                     // 지면을 벗어났다가 다시 착지 → 제어 복구
+                    IsLaunched = false;
+                else if (Time.time - _launchStartTime > maxLaunchTime)
+                    // 지면을 아예 벗어나지 못한 약한 넉백 → 조종 불능으로 갇히지 않게 복구
                     IsLaunched = false;
 
                 return;

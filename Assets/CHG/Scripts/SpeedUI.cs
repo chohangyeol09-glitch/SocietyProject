@@ -10,7 +10,7 @@ public class SpeedUI : MonoBehaviour
 
     void Update()
     {
-        speedText.text = $"{bicycle.currentSpeed * 3.6f:0} km/h";
+        speedText.text = $"{bicycle.currentSpeed * 3.6f:0}";
         speedImage.fillAmount = (bicycle.currentSpeed * 3.6f) / 100f;
     }
 }
