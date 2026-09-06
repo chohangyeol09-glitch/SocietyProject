@@ -12,6 +12,7 @@ namespace CHG.Scripts
         public event Action OnMovedEnded;
         public event Action OnStopStated;
         public event Action OnStopEnded;
+        public event Action OnReseted;
         
         private Controls _controls;
         private void OnEnable()
@@ -43,6 +44,13 @@ namespace CHG.Scripts
                 OnStopStated?.Invoke();
             if (context.canceled)
                 OnStopEnded?.Invoke();
+                
+        }
+
+        public void OnReset(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                OnReseted?.Invoke();
                 
         }
     }
