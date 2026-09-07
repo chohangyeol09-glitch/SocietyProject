@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using CHG.Scripts.DeliverySystem;
 
 public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
 {
@@ -289,7 +290,7 @@ public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
         }
 
 
-        // ESC도 일단 상단 메뉴로 복귀
+        // ESC = 상단 메뉴로 복귀
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             ReturnToMenu();
@@ -297,9 +298,17 @@ public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
     }
 
 
-    private void OnMissionAccepted(MissionSO mission)
+    // QuestDataSO 기준으로 변경
+    private void OnMissionAccepted(
+        QuestDataSO quest)
     {
-        // 프리팹이 사라졌으므로
+        Debug.Log(
+            $"배달앱에서 퀘스트 수락 확인 : " +
+            $"{quest.DisplayName}"
+        );
+
+
+        // 미션 UI 프리팹이 사라졌으므로
         // SelectionFrame을 다시 Mission 탭으로 올림
         ReturnToMenu();
     }
@@ -317,6 +326,7 @@ public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
     {
         if (menus.Count == 0)
             return;
+
 
         if (selectionFrame == null)
             return;

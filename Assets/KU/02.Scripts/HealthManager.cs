@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class HealthManager :
@@ -37,6 +38,14 @@ public class HealthManager :
     private void Start()
     {
         ResetHealth();
+    }
+
+    private void Update()
+    {
+        if(Keyboard.current.kKey.wasPressedThisFrame)
+        {
+            TakeDamage();
+        }
     }
 
 
