@@ -8,7 +8,7 @@ namespace CHG.Scripts.DeliverySystem
     {
         [SerializeField] private GameObject[] highlightObjs;
         
-        public string DestinationID;
+        public string DestinationID => gameObject.name;
         public string DisplayName => DestinationID;
         public event Action OnClear;
         public event Action OnFail;
@@ -21,6 +21,7 @@ namespace CHG.Scripts.DeliverySystem
         private void Awake()
         {
             SetHighlight(false);
+            Debug.Log(DestinationID);
         }
 
         public void Active()

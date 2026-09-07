@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5021ed21f2129747bdd3eb9805557a0, type: 3}
+  m_Name: Taco to BowlingAlley
+  m_EditorClassIdentifier: Assembly-CSharp::CHG.Scripts.DeliverySystem.QuestDataSO
+  foodID: Taco_BowlingAlley
+  originID: Taco
+  destinationID: BowlingAlley
+  displayName: "\uBCFC\uB9C1\uC7A5\uC5D0 \uD0C0\uCF54"
+  icon: {fileID: 0}
+  orderFormat: "{destination}(\uC73C)\uB85C {food}\uC880 \uBC30\uB2EC\uD574\uC8FC\uC138\uC694!"
+  timeLimit: 180
+  reward: 1000
