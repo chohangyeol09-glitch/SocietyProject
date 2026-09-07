@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5021ed21f2129747bdd3eb9805557a0, type: 3}
+  m_Name: Bugger to Park
+  m_EditorClassIdentifier: Assembly-CSharp::CHG.Scripts.DeliverySystem.QuestDataSO
+  foodID: Bugger_Park
+  originID: Bugger
+  destinationID: Park
+  displayName: "\uACF5\uC6D0\uC758 \uD584\uBC84\uAC70"
+  icon: {fileID: 0}
+  orderFormat: "{food}(\uC744)\uB97C \uBE68\uB9AC {destination}(\uC73C)\uB85C {time}\uC548\uC5D0
+    \uBC30\uB2EC\uD574\uC8FC\uC138\uC694!"
+  timeLimit: 140
+  reward: 1000
