@@ -496,6 +496,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 336996054}
+  - component: {fileID: 336996055}
   m_Layer: 5
   m_Name: ReviewScreen
   m_TagString: Untagged
@@ -517,11 +518,37 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 340618236}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &336996055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336996053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 1
+  m_Spacing: 20
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &340618235
 GameObject:
   m_ObjectHideFlags: 0
@@ -1698,6 +1725,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1327955195}
+  - component: {fileID: 1327955196}
   m_Layer: 5
   m_Name: MissionScreen
   m_TagString: Untagged
@@ -1719,11 +1747,37 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 340618236}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &1327955196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327955194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 1
+  m_Spacing: 20
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &1337856682
 GameObject:
   m_ObjectHideFlags: 0
@@ -1761,15 +1815,15 @@ MonoBehaviour:
   - appName: "\uC74C\uC545\uC571"
     iconTransform: {fileID: 1043298119}
     iconImage: {fileID: 1043298120}
-    appScreenObject: {fileID: 0}
+    appScreenObject: {fileID: 282712769}
   - appName: "\uB9E4\uC2E0\uC800\uC571"
     iconTransform: {fileID: 1565533563}
     iconImage: {fileID: 1565533564}
-    appScreenObject: {fileID: 0}
+    appScreenObject: {fileID: 282712769}
   - appName: "\uD504\uB85C\uD544\uC571"
     iconTransform: {fileID: 2113835371}
     iconImage: {fileID: 2113835372}
-    appScreenObject: {fileID: 0}
+    appScreenObject: {fileID: 282712769}
   homeScreen: {fileID: 1272073260}
   selectionFrame: {fileID: 210711550}
   selectedAlpha: 1
@@ -2734,10 +2788,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1452f38cfbb3c844eb551a1f497fa1c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MissionManager
-  missions:
-  - {fileID: 11400000, guid: baad86d9af1a864459fb0d9f0143dff4, type: 2}
-  - {fileID: 11400000, guid: 2b47b694f5168f74dafc41a0425cfc0e, type: 2}
-  - {fileID: 11400000, guid: 87d58b91daf78384c9d355f6d5aa1e8c, type: 2}
+  quests:
+  - {fileID: 11400000, guid: ef44e0012201068478ec953855020662, type: 2}
   missionPrefab: {fileID: 8717266957224691893, guid: f06752c6149478e43994bcf44dc6e638, type: 3}
   missionListParent: {fileID: 1327955195}
   minSpawnDelay: 10
@@ -2754,7 +2806,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de2a9db187a65543a210e48ea0c1777, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReviewManager
-  reviews: []
+  reviews:
+  - {fileID: 11400000, guid: 963033d64c9aa254c8f69fbf095770b3, type: 2}
   reviewPrefab: {fileID: 3505846354056477809, guid: dae4e95f0335fa8439c2c8e6189a66ef, type: 3}
   reviewListParent: {fileID: 336996054}
 --- !u!1 &1986947585

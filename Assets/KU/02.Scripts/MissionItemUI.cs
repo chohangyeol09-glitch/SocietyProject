@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using CHG.Scripts.DeliverySystem;
 
 public class MissionItemUI : MonoBehaviour
 {
@@ -29,30 +30,33 @@ public class MissionItemUI : MonoBehaviour
     }
 
 
-    public void Setup(MissionSO mission)
+    public void Setup(QuestDataSO quest)
     {
-        if (mission == null)
+        if (quest == null)
             return;
 
 
+        // 미션 이름
         if (requesterNameText != null)
         {
             requesterNameText.text =
-                mission.requesterName;
+                quest.DisplayName;
         }
 
 
+        // 배달 내용
         if (deliveryContentText != null)
         {
             deliveryContentText.text =
-                mission.deliveryContent;
+                quest.OrderFormat;
         }
 
 
+        // 아이콘
         if (profileIconImage != null)
         {
             profileIconImage.sprite =
-                mission.profileIcon;
+                quest.Icon;
         }
     }
 }
