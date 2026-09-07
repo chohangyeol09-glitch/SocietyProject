@@ -8,9 +8,14 @@ public class ObstacleManager : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform player;
-    [SerializeField] private Transform[] carSpawnPosition;
     [SerializeField] private Transform[] peopleSpawnPosition;
-    [SerializeField] private Transform[] carWaypoints;
+
+    [Header("Car Waypoint")]
+    [SerializeField] private Transform carWaypointsParent;
+    [SerializeField] private Transform carSpawnPointsParent;
+
+    private Transform[] carWaypoints;
+    private Transform[] carSpawnPosition;
 
     [Header("Prefabs")]
     [SerializeField] private CarAgent carPrefab;
@@ -38,6 +43,16 @@ public class ObstacleManager : MonoBehaviour
 
     void Awake()
     {
+        carWaypoints = carWaypointsParent
+            .Cast<Transform>()
+            .OrderBy(t => t.GetSiblingIndex())
+            .ToArray();
+
+        carSpawnPosition = carSpawnPointsParent
+            .Cast<Transform>()
+            .OrderBy(t => t.GetSiblingIndex())
+            .ToArray();
+
         carPool = new ObjectPool<CarAgent>(
             () => Instantiate(carPrefab),
             car => car.gameObject.SetActive(true),
@@ -177,5 +192,16 @@ public class ObstacleManager : MonoBehaviour
         Gizmos.DrawWireSphere(player.position, spawnZoneRadius);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(player.position, despawnRadius);
+
+        if (carWaypoints != null && carWaypoints.Length >= 2)
+        {
+            Gizmos.color = Color.yellow;
+            for (int i = 0; i < carWaypoints.Length; i++)
+            {
+                var a = carWaypoints[i].position;
+                var b = carWaypoints[(i + 1) % carWaypoints.Length].position;
+                Gizmos.DrawLine(a, b);
+            }
+        }
     }
 }

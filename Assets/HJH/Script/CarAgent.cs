@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -22,8 +21,10 @@ public class CarAgent : MonoBehaviour
         this.maxDistanceFromPlayer = maxDistance;
         this.releaseAction = releaseAction;
 
-        agent.Warp(transform.position);
+        agent.avoidancePriority = UnityEngine.Random.Range(10, 90);
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
 
+        agent.Warp(transform.position);
         currentIndex = FindNearestWaypointIndex();
         agent.SetDestination(waypoints[currentIndex].position);
     }
@@ -47,7 +48,6 @@ public class CarAgent : MonoBehaviour
     {
         float minDist = float.MaxValue;
         int nearest = 0;
-
         for (int i = 0; i < waypoints.Length; i++)
         {
             float dist = Vector3.Distance(transform.position, waypoints[i].position);
@@ -58,5 +58,21 @@ public class CarAgent : MonoBehaviour
             }
         }
         return nearest;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider == null) return;
+
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            OnRunOver();
+        }
+    }
+
+    public void OnRunOver()
+    {
+        // 강유야 치었을 때 이벤트 연결 메소드인데, 여기에서 별점 깎이는 거 하면 될 듯
+        HealthManager.Instance.TakeDamage();
     }
 }
