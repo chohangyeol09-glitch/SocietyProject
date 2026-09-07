@@ -2,14 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using CHG.Scripts.DeliverySystem;
 
 public class MissionManager :
     MonoSingleton<MissionManager>
 {
-    [Header("등장 가능한 미션")]
+    [Header("등장 가능한 퀘스트")]
     [SerializeField]
-    private List<MissionSO> missions =
-        new List<MissionSO>();
+    private List<QuestDataSO> quests =
+        new List<QuestDataSO>();
 
 
     [Header("미션 UI")]
@@ -28,13 +29,13 @@ public class MissionManager :
     private float maxSpawnDelay = 20f;
 
 
-    // 현재 앱에 떠 있는 미션
-    private MissionSO currentOfferedMission;
+    // 현재 앱에 떠 있는 퀘스트
+    private QuestDataSO currentOfferedQuest;
 
 
     // 현재 플레이어가 수락해서
-    // 실제로 진행 중인 미션
-    private MissionSO acceptedMission;
+    // 실제로 진행 중인 퀘스트
+    private QuestDataSO acceptedQuest;
 
 
     // 현재 생성되어 있는 미션 UI
@@ -44,33 +45,58 @@ public class MissionManager :
     private Coroutine spawnCoroutine;
 
 
-    public event Action<MissionSO> MissionAccepted;
+    // 퀘스트가 수락되었을 때 호출되는 이벤트
+    public event Action<QuestDataSO> MissionAccepted;
 
+
+    // =====================================
+    // 현재 제안된 미션 존재 여부
+    // =====================================
 
     public bool HasActiveMission
     {
         get
         {
-            return currentOfferedMission != null &&
+            return currentOfferedQuest != null &&
                    currentMissionUI != null;
         }
     }
 
 
+    // =====================================
+    // 현재 수행 중인 미션 존재 여부
+    // =====================================
+
     public bool HasAcceptedMission
     {
         get
         {
-            return acceptedMission != null;
+            return acceptedQuest != null;
         }
     }
 
 
-    public MissionSO AcceptedMission
+    // =====================================
+    // 현재 수행 중인 퀘스트
+    // =====================================
+
+    public QuestDataSO AcceptedQuest
     {
         get
         {
-            return acceptedMission;
+            return acceptedQuest;
+        }
+    }
+
+
+    // 기존 코드에서
+    // AcceptedMission을 사용하고 있다면
+    // 당장 오류 안 나게 이것도 남겨둘 수 있음
+    public QuestDataSO AcceptedMission
+    {
+        get
+        {
+            return acceptedQuest;
         }
     }
 
@@ -92,13 +118,13 @@ public class MissionManager :
             return;
 
 
-        // 이미 받을 수 있는 미션이 떠 있음
-        if (currentOfferedMission != null)
+        // 이미 받을 수 있는 퀘스트가 떠 있음
+        if (currentOfferedQuest != null)
             return;
 
 
-        // 이미 수행 중인 미션이 있음
-        if (acceptedMission != null)
+        // 이미 수행 중인 퀘스트가 있음
+        if (acceptedQuest != null)
             return;
 
 
@@ -119,7 +145,7 @@ public class MissionManager :
 
 
         Debug.Log(
-            $"다음 미션까지 {delay:F1}초"
+            $"다음 퀘스트까지 {delay:F1}초"
         );
 
 
@@ -134,15 +160,16 @@ public class MissionManager :
 
 
     // =====================================
-    // 랜덤 미션 생성
+    // 랜덤 퀘스트 생성
     // =====================================
 
     public void SpawnRandomMission()
     {
-        if (missions.Count == 0)
+        if (quests == null ||
+            quests.Count == 0)
         {
             Debug.LogWarning(
-                "MissionSO가 등록되어 있지 않습니다."
+                "QuestDataSO가 등록되어 있지 않습니다."
             );
 
             return;
@@ -177,12 +204,22 @@ public class MissionManager :
         int randomIndex =
             UnityEngine.Random.Range(
                 0,
-                missions.Count
+                quests.Count
             );
 
 
-        currentOfferedMission =
-            missions[randomIndex];
+        currentOfferedQuest =
+            quests[randomIndex];
+
+
+        if (currentOfferedQuest == null)
+        {
+            Debug.LogWarning(
+                "선택된 QuestDataSO가 비어 있습니다."
+            );
+
+            return;
+        }
 
 
         currentMissionUI =
@@ -193,19 +230,29 @@ public class MissionManager :
 
 
         currentMissionUI.Setup(
-            currentOfferedMission
+            currentOfferedQuest
         );
 
 
         Debug.Log(
-            $"새 미션 등장 : " +
-            $"{currentOfferedMission.requesterName}"
+            $"새 퀘스트 등장 : " +
+            $"{currentOfferedQuest.DisplayName}"
+        );
+
+
+        Debug.Log(
+            $"음식 : {currentOfferedQuest.FoodID} / " +
+            $"출발지 : {currentOfferedQuest.OriginID} / " +
+            $"목적지 : {currentOfferedQuest.DestinationID}"
         );
 
 
         // 핸드폰 알림 진동
-        SmartPhoneManager.Instance
-            .PlayNotificationVibration();
+        if (SmartPhoneManager.Instance != null)
+        {
+            SmartPhoneManager.Instance
+                .PlayNotificationVibration();
+        }
     }
 
 
@@ -215,21 +262,24 @@ public class MissionManager :
 
     public void AcceptCurrentMission()
     {
-        if (currentOfferedMission == null)
+        if (currentOfferedQuest == null)
             return;
 
 
-        acceptedMission =
-            currentOfferedMission;
+        acceptedQuest =
+            currentOfferedQuest;
 
 
-        currentOfferedMission = null;
+        currentOfferedQuest = null;
 
 
         // 새로운 배달 시작
         // 별 5개로 초기화
-        HealthManager.Instance
-            .ResetHealth();
+        if (HealthManager.Instance != null)
+        {
+            HealthManager.Instance
+                .ResetHealth();
+        }
 
 
         // 미션 UI 삭제
@@ -245,19 +295,27 @@ public class MissionManager :
 
 
         Debug.Log(
-            $"미션 수락 : " +
-            $"{acceptedMission.requesterName}"
+            $"퀘스트 수락 : " +
+            $"{acceptedQuest.DisplayName}"
+        );
+
+
+        Debug.Log(
+            $"출발지 : {acceptedQuest.OriginID} / " +
+            $"목적지 : {acceptedQuest.DestinationID} / " +
+            $"제한시간 : {acceptedQuest.TimeLimit}초 / " +
+            $"보상 : {acceptedQuest.Reward}"
         );
 
 
         MissionAccepted?.Invoke(
-            acceptedMission
+            acceptedQuest
         );
     }
 
 
     // =====================================
-    // 현재 미션 수락 위치
+    // 현재 미션 수락 버튼 위치
     // =====================================
 
     public RectTransform GetAcceptTransform()
@@ -272,15 +330,35 @@ public class MissionManager :
 
 
     // =====================================
+    // 현재 수행 중인 퀘스트 가져오기
+    // =====================================
+
+    public QuestDataSO GetAcceptedQuest()
+    {
+        return acceptedQuest;
+    }
+
+
+    // =====================================
+    // 현재 제안된 퀘스트 가져오기
+    // =====================================
+
+    public QuestDataSO GetOfferedQuest()
+    {
+        return currentOfferedQuest;
+    }
+
+
+    // =====================================
     // 미션 성공
     // =====================================
 
     public void CompleteAcceptedMission()
     {
-        if (acceptedMission == null)
+        if (acceptedQuest == null)
         {
             Debug.LogWarning(
-                "현재 수행 중인 미션이 없습니다."
+                "현재 수행 중인 퀘스트가 없습니다."
             );
 
             return;
@@ -288,16 +366,27 @@ public class MissionManager :
 
 
         Debug.Log(
-            $"미션 성공 : " +
-            $"{acceptedMission.requesterName}"
+            $"퀘스트 성공 : " +
+            $"{acceptedQuest.DisplayName}"
+        );
+
+
+        Debug.Log(
+            $"보상 : {acceptedQuest.Reward}"
         );
 
 
         // 현재 남은 체력
         // = 이번 배달의 리뷰 별점
-        int starCount =
-            HealthManager.Instance
-                .GetCurrentHealth();
+        int starCount = 0;
+
+
+        if (HealthManager.Instance != null)
+        {
+            starCount =
+                HealthManager.Instance
+                    .GetCurrentHealth();
+        }
 
 
         Debug.Log(
@@ -308,14 +397,27 @@ public class MissionManager :
 
         // 현재 체력을 기준으로
         // 랜덤 리뷰 생성
-        ReviewManager.Instance
-            .AddRandomReview(
-                starCount
-            );
+        if (ReviewManager.Instance != null)
+        {
+            ReviewManager.Instance
+                .AddRandomReview(
+                    starCount
+                );
+        }
 
 
-        // 수행 중인 미션 제거
-        acceptedMission = null;
+        // TODO:
+        // 돈 시스템이 있다면 여기에서
+        // acceptedQuest.Reward 만큼 지급하면 됨.
+        //
+        // 예:
+        // MoneyManager.Instance.AddMoney(
+        //     acceptedQuest.Reward
+        // );
+
+
+        // 수행 중인 퀘스트 제거
+        acceptedQuest = null;
 
 
         // 다음 미션 타이머 시작
@@ -329,10 +431,10 @@ public class MissionManager :
 
     public void FailAcceptedMission()
     {
-        if (acceptedMission == null)
+        if (acceptedQuest == null)
         {
             Debug.LogWarning(
-                "현재 수행 중인 미션이 없습니다."
+                "현재 수행 중인 퀘스트가 없습니다."
             );
 
             return;
@@ -340,12 +442,12 @@ public class MissionManager :
 
 
         Debug.Log(
-            $"미션 실패 : " +
-            $"{acceptedMission.requesterName}"
+            $"퀘스트 실패 : " +
+            $"{acceptedQuest.DisplayName}"
         );
 
 
-        acceptedMission = null;
+        acceptedQuest = null;
 
 
         // 실패했으므로 리뷰는 생성하지 않음
