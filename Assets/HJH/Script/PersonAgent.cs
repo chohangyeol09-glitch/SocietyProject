@@ -59,6 +59,7 @@ public class PersonAgent : MonoBehaviour
                 ? collision.contacts[0].point
                 : collision.gameObject.transform.position;
 
+            OnRunOver();
             Die(hitPoint);
         }
     }
@@ -97,5 +98,6 @@ public class PersonAgent : MonoBehaviour
     public void OnRunOver()
     {
         // 강유야 치었을 때 이벤트 연결 메소드인데, 여기에서 별점 깎이는 거 하면 될 듯
+        HealthManager.Instance.TakeDamage();
     }
 }
