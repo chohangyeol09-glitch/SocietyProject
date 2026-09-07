@@ -17,6 +17,8 @@ public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
     [Serializable]
     public class DeliveryMenu
     {
+
+
         [Header("메뉴 종류")]
         public DeliveryMenuType menuType;
 
@@ -50,6 +52,7 @@ public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
     [Header("선택 표시")]
     [SerializeField]
     private RectTransform selectionFrame;
+
 
 
     private int selectedIndex = 0;
@@ -92,6 +95,11 @@ public class DeliveryAppManager : MonoSingleton<DeliveryAppManager>
         }
     }
 
+    private void Start()
+    {
+
+        selectionFrame.SetAsLastSibling();
+    }
 
     private void Update()
     {
