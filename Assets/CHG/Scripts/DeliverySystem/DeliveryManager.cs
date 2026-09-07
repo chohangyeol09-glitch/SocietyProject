@@ -21,7 +21,7 @@ namespace CHG.Scripts.DeliverySystem
 
     public class DeliveryManager : MonoBehaviour
     {
-        [SerializeField] private List<Restaurant> restaurants;
+        [SerializeField] private List<QuestDataSO> quests;
         [SerializeField] private List<DeliveryDestination> deliveryPoints;
         [SerializeField] private float defaultTimeLimit = 180f;
         [SerializeField] private DeliveryTimerStart timerStart = DeliveryTimerStart.QuestStart;
@@ -42,12 +42,13 @@ namespace CHG.Scripts.DeliverySystem
 
         public event Action<DeliveryQuest> OnQuestStart;
         public event Action<DeliveryDestination> OnDestinationChanged;
+        public event Action<Vector2> OnDestinationPositionChanged;
         public event Action<DeliveryQuest> OnFoodReceived;
         public event Action<DeliveryQuest> OnQuestClear;
         public event Action<DeliveryQuest, DeliveryPhase> OnQuestFail;
         public event Action<float> OnRemainingTimeChanged;
 
-        public IReadOnlyList<Restaurant> Restaurants => restaurants;
+        public IReadOnlyList<QuestDataSO> Quests => quests;
 
         private void Update()
         {
@@ -67,11 +68,6 @@ namespace CHG.Scripts.DeliverySystem
             OnRemainingTimeChanged?.Invoke(RemainingTime);
         }
 
-        public List<FoodDataSO> GetAllFoods()
-        {
-            return restaurants.SelectMany(r => r.Menu).Where(f => f != null).Distinct().ToList();
-        }
-
         public List<DeliveryQuest> CreateRandomQuests(int count)
         {
             List<DeliveryQuest> result = new List<DeliveryQuest>();
@@ -84,46 +80,35 @@ namespace CHG.Scripts.DeliverySystem
             return result;
         }
 
-        public DeliveryQuest CreateRandomQuest()
-        {
-            Restaurant restaurant = PickRandom(restaurants);
-            if (restaurant == null)
-                return null;
-
-            return CreateQuest(restaurant.GetRandomFood(), restaurant);
-        }
+        public DeliveryQuest CreateRandomQuest() => CreateQuest(PickRandom(quests));
 
         public DeliveryQuest CreateQuest(string foodID)
         {
-            List<Restaurant> sellers = restaurants.Where(r => r != null && r.HasFood(foodID)).ToList();
-            Restaurant restaurant = PickRandom(sellers);
-            if (restaurant == null)
-                return null;
-
-            return CreateQuest(restaurant.Menu.First(f => f != null && f.FoodID == foodID), restaurant);
+            QuestDataSO data = quests.FirstOrDefault(q => q != null && q.FoodID == foodID);
+            return CreateQuest(data);
         }
 
-        public DeliveryQuest CreateQuest(FoodDataSO food)
+        public DeliveryQuest CreateQuest(QuestDataSO data)
         {
-            List<Restaurant> sellers = restaurants.Where(r => r != null && r.HasFood(food)).ToList();
-            return CreateQuest(food, PickRandom(sellers));
+            if (data == null)
+                return null;
+
+            DeliveryDestination origin = FindDestination(data.OriginID);
+            DeliveryDestination deliveryPoint = FindDestination(data.DestinationID);
+
+            if (origin == null || deliveryPoint == null)
+            {
+                Debug.LogWarning($"Quest '{data.FoodID}' : origin/destination not found (origin={data.OriginID}, destination={data.DestinationID})");
+                return null;
+            }
+
+            float timeLimit = data.TimeLimit > 0f ? data.TimeLimit : defaultTimeLimit;
+            return new DeliveryQuest(data, origin, deliveryPoint, timeLimit);
         }
 
-        public DeliveryQuest CreateQuest(FoodDataSO food, Restaurant restaurant)
+        private DeliveryDestination FindDestination(string destinationID)
         {
-            if (food == null || restaurant == null)
-                return null;
-
-            List<DeliveryDestination> candidates = deliveryPoints
-                .Where(p => p != null && p != restaurant.Destination)
-                .ToList();
-
-            DeliveryDestination deliveryPoint = PickRandom(candidates);
-            if (deliveryPoint == null)
-                return null;
-
-            float timeLimit = food.TimeLimit > 0f ? food.TimeLimit : defaultTimeLimit;
-            return new DeliveryQuest(food, restaurant, deliveryPoint, timeLimit);
+            return deliveryPoints.FirstOrDefault(p => p != null && p.DestinationID == destinationID);
         }
 
         public bool ActiveQuest(DeliveryQuest quest)
@@ -142,7 +127,7 @@ namespace CHG.Scripts.DeliverySystem
             RemainingTime = quest.TimeLimit;
 
             OnQuestStart?.Invoke(_currentQuest);
-            SetDestination(quest.Restaurant.Destination);
+            SetDestination(quest.Origin);
 
             if (timerStart == DeliveryTimerStart.QuestStart)
                 StartTimer();
@@ -154,7 +139,7 @@ namespace CHG.Scripts.DeliverySystem
 
         public bool ActiveQuest(string foodID) => ActiveQuest(CreateQuest(foodID));
 
-        public bool ActiveQuest(FoodDataSO food) => ActiveQuest(CreateQuest(food));
+        public bool ActiveQuest(QuestDataSO data) => ActiveQuest(CreateQuest(data));
 
         public void FailQuest()
         {
@@ -191,6 +176,9 @@ namespace CHG.Scripts.DeliverySystem
             _currentDestination.OnClear += HandleDestinationClear;
             _currentDestination.Active();
             OnDestinationChanged?.Invoke(_currentDestination);
+
+            Vector3 pos = _currentDestination.transform.position;
+            OnDestinationPositionChanged?.Invoke(new Vector2(pos.x, pos.z));
         }
 
         private void ClearDestination(bool fail)
@@ -245,7 +233,7 @@ namespace CHG.Scripts.DeliverySystem
             DeliveryQuest quest = CreateRandomQuest();
             if (quest == null)
             {
-                Debug.LogWarning("Failed to create quest : check restaurants / deliveryPoints / menu");
+                Debug.LogWarning("Failed to create quest : check quests / deliveryPoints (origin/destination ID matching)");
                 return;
             }
 

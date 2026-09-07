@@ -1,8 +1,8 @@
 using System;
 using DevLib.ModuleSystem;
+using rayzngames;
 using UnityEngine;
 using UnityEngine.Events;
-using Random = UnityEngine.Random;
 
 namespace CHG.Bike
 {
@@ -13,6 +13,8 @@ namespace CHG.Bike
     ///
     /// 점프 후 착지처럼 "밟고 서는 면"과의 충돌은 아무리 세도 튕기지 않는다.
     /// (BikeCollisionModule 이 접촉 면 각도로 바닥/벽을 구분해준다)
+    ///
+    /// BikeModuleOwner 가 없는 씬에서도 동작하도록, 초기화되지 않았으면 Start 에서 스스로 배선한다.
     /// </summary>
     public class KnockbackModule : Module, IAfterInitModule
     {
@@ -51,33 +53,59 @@ namespace CHG.Bike
 
         private Rigidbody _body;
         private BikeControlModule _control;
+        private BikeCollisionModule _collision;
+        private bool _wired;
 
-        public void AfterInit()
-        {
-            _body = (_owner as BikeModuleOwner)?.Body;
-            if (_body == null)
-                _body = _owner.GetComponent<Rigidbody>();
+        public void AfterInit() => Wire();
 
-            _control = _owner.GetModule<BikeControlModule>();
-
-            BikeCollisionModule collision = _owner.GetModule<BikeCollisionModule>();
-            if (collision != null)
-                collision.OnCollision += HandleCollision;
-            else
-                Debug.LogWarning($"{nameof(KnockbackModule)}: BikeCollisionModule 을 찾지 못했습니다.");
-        }
+        private void Start() => Wire();
 
         private void OnDestroy()
         {
-            BikeCollisionModule collision = _owner != null ? _owner.GetModule<BikeCollisionModule>() : null;
-            if (collision != null)
-                collision.OnCollision -= HandleCollision;
+            if (_collision != null)
+                _collision.OnCollision -= HandleCollision;
+        }
+
+        /// <summary>참조를 찾아 충돌 이벤트를 구독한다. 여러 번 호출해도 한 번만 연결된다.</summary>
+        private void Wire()
+        {
+            if (_wired)
+                return;
+
+            _body = (_owner as BikeModuleOwner)?.Body;
+            if (_body == null)
+                _body = GetComponentInParent<Rigidbody>();
+
+            _control = FindModule<BikeControlModule>();
+            _collision = FindModule<BikeCollisionModule>();
+
+            if (_collision == null)
+            {
+                Debug.LogWarning($"{nameof(KnockbackModule)}: BikeCollisionModule 을 찾지 못했습니다.", this);
+                return;
+            }
+
+            _collision.OnCollision += HandleCollision;
+            _wired = true;
+        }
+
+        /// <summary>owner 가 있으면 owner 에서, 없으면 바이크 루트 하위에서 모듈을 찾는다.</summary>
+        private T FindModule<T>() where T : Module
+        {
+            if (_owner != null)
+            {
+                T fromOwner = _owner.GetModule<T>();
+                if (fromOwner != null)
+                    return fromOwner;
+            }
+
+            BicycleVehicle bike = GetComponentInParent<BicycleVehicle>();
+            Transform root = bike != null ? bike.transform : transform.root;
+            return root.GetComponentInChildren<T>(true);
         }
 
         private void HandleCollision(BikeCollisionEvent evt)
         {
-            
-            Debug.Log("Knockback");
             if (evt.Tier < minTier || _body == null)
                 return;
 
@@ -105,18 +133,17 @@ namespace CHG.Bike
 
             // 살짝 회전을 줘서 뒹구는 느낌을 준다. (관성 텐서 무시)
             if (spinTorque > 0f)
-                _body.AddTorque(Random.onUnitSphere * spinTorque, ForceMode.VelocityChange);
+                _body.AddTorque(UnityEngine.Random.onUnitSphere * spinTorque, ForceMode.VelocityChange);
 
-            // 연출/게임 로직은 이벤트로 넘긴다. 구독자 예외가 물리 처리를 막지 않도록 마지막에 실행.
+            // 연출/게임 로직은 이벤트로 넘긴다. 물리 처리를 끝낸 뒤 마지막에 실행.
             onKnockback?.Invoke();
             Knockback?.Invoke(evt);
-
-            Debug.Log("Knockback");
+            Debug.Log("knockback");
             if (evt.NormalSpeed >= strongNormalSpeed)
             {
                 onStrongKnockback?.Invoke();
                 StrongKnockback?.Invoke(evt);
-                Debug.Log("StrongKnockback");
+            Debug.Log("StrongKnockback");
             }
         }
     }

@@ -17,23 +17,23 @@ namespace CHG.Scripts.DeliverySystem
         private static int _idCounter;
 
         public string QuestID { get; }
-        public FoodDataSO Food { get; }
-        public Restaurant Restaurant { get; }
+        public QuestDataSO Data { get; }
+        public DeliveryDestination Origin { get; }
         public DeliveryDestination DeliveryPoint { get; }
         public float TimeLimit { get; }
 
-        public DeliveryQuest(FoodDataSO food, Restaurant restaurant, DeliveryDestination deliveryPoint, float timeLimit)
+        public DeliveryQuest(QuestDataSO data, DeliveryDestination origin, DeliveryDestination deliveryPoint, float timeLimit)
         {
-            QuestID = $"{food.FoodID}_{++_idCounter}";
-            Food = food;
-            Restaurant = restaurant;
+            QuestID = $"{data.FoodID}_{++_idCounter}";
+            Data = data;
+            Origin = origin;
             DeliveryPoint = deliveryPoint;
             TimeLimit = timeLimit;
         }
 
-        public string FoodName => Food.DisplayName;
+        public string FoodName => Data.DisplayName;
 
-        public string OrderText => Format(string.IsNullOrEmpty(Food.OrderFormat) ? DefaultOrderFormat : Food.OrderFormat);
+        public string OrderText => Format(string.IsNullOrEmpty(Data.OrderFormat) ? DefaultOrderFormat : Data.OrderFormat);
 
         public string PickupText => Format(PickupFormat);
 
@@ -46,9 +46,9 @@ namespace CHG.Scripts.DeliverySystem
 
             string text = format
                 .Replace(FoodToken, FoodName)
-                .Replace(RestaurantToken, Restaurant.RestaurantName)
+                .Replace(RestaurantToken, Origin.DisplayName)
                 .Replace(DestinationToken, DeliveryPoint.DisplayName)
-                .Replace(RewardToken, Food.Reward.ToString())
+                .Replace(RewardToken, Data.Reward.ToString())
                 .Replace(TimeToken, Mathf.RoundToInt(TimeLimit).ToString());
 
             return KoreanJosa.Resolve(text);

@@ -1,3 +1,4 @@
+using System;
 using CHG.Bike;
 using CHG.Scripts;
 using rayzngames;
@@ -10,7 +11,8 @@ namespace rayzngames
         BicycleVehicle bicycle;
         public bool controllingBike;
         [SerializeField] private PlayerInputSO playerInput;
-
+        [SerializeField] private Transform startPos;
+        
         // 있으면 조종/회전 권한을 이 모듈에 위임한다(넉백 연출과 충돌 방지). 없으면 기존 방식 사용.
         private BikeControlModule controlModule;
 
@@ -18,11 +20,28 @@ namespace rayzngames
         void Awake()
         {
             bicycle = GetComponent<BicycleVehicle>();
-            controlModule = GetComponent<BikeControlModule>();
+            controlModule = GetComponentInChildren<BikeControlModule>(true);
             playerInput.OnMoved += HandleMoved;
             playerInput.OnMovedEnded += HandleMovedEnd;
             playerInput.OnStopStated += HandleStopStated;
             playerInput.OnStopEnded += HandleStopEnded;
+            playerInput.OnReseted += HandleReseted;
+        }
+
+        private void OnDestroy()
+        {
+            playerInput.OnMoved -= HandleMoved;
+            playerInput.OnMovedEnded -= HandleMovedEnd;
+            playerInput.OnStopStated -= HandleStopStated;
+            playerInput.OnStopEnded -= HandleStopEnded;
+            playerInput.OnReseted -= HandleReseted;
+        }
+
+        private void HandleReseted()
+        {
+            transform.position = startPos.position;
+            bicycle.VerticalInput = 0;
+            bicycle.HorizontalInput = 0;
         }
 
         private void HandleMovedEnd()

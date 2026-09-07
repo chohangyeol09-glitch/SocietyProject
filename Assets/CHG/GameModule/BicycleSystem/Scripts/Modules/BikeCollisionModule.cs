@@ -11,8 +11,9 @@ namespace CHG.Bike
     /// 접촉점이 여러 개면 "가장 정면으로 부딪힌" 접촉점을 대표로 고르되,
     /// 벽 접촉이 하나라도 있으면 벽을 우선한다. (착지와 벽 충돌이 동시에 일어나도 벽으로 판정)
     ///
-    /// 주의: OnCollisionEnter 가 호출되려면 이 컴포넌트가 붙은 오브젝트에
-    ///       (트리거가 아닌) Collider 와 Rigidbody 가 있어야 한다. 바이크 루트에 함께 두는 것을 권장.
+    /// 충돌 콜백은 Collider/Rigidbody 가 붙은 오브젝트에만 전달되므로, 이 모듈이 하위 오브젝트에
+    /// 붙어 있어도 동작하도록 런타임에 몸체로 <see cref="BikeCollisionRelay"/> 를 붙여 받아온다.
+    /// (WheelCollider 는 충돌 콜백을 발생시키지 않으므로 바퀴 접지는 여기서 잡히지 않는다)
     /// </summary>
     public class BikeCollisionModule : Module
     {
@@ -39,10 +40,27 @@ namespace CHG.Bike
         [Tooltip("이 레이어와의 충돌은 각도와 상관없이 항상 바닥으로 본다. Nothing 이면 각도로만 판정.")]
         [SerializeField] private LayerMask alwaysGroundLayers = 0;
 
+        [Header("디버그")]
+        [Tooltip("충돌이 감지될 때마다 속도/단계/바닥 여부를 콘솔에 찍는다. 임계값 튜닝할 때 켠다.")]
+        [SerializeField] private bool logCollisions;
+
         /// <summary>충돌이 감지될 때(Low 이상) 발행된다. 각 효과 모듈이 구독한다.</summary>
         public event Action<BikeCollisionEvent> OnCollision;
 
         private float _lastCollisionTime = -999f;
+
+        private void Awake()
+        {
+            // 충돌 콜백을 실제로 받는 오브젝트(Rigidbody 몸체)에 중계기를 붙인다.
+            Rigidbody body = GetComponentInParent<Rigidbody>();
+            GameObject target = body != null ? body.gameObject : gameObject;
+
+            BikeCollisionRelay relay = target.GetComponent<BikeCollisionRelay>();
+            if (relay == null)
+                relay = target.AddComponent<BikeCollisionRelay>();
+
+            relay.Register(this);
+        }
 
         /// <summary>속도값으로부터 충돌 단계를 계산한다.</summary>
         public CollisionTier GetTier(float impactSpeed)
@@ -53,7 +71,8 @@ namespace CHG.Bike
             return CollisionTier.None;
         }
 
-        private void OnCollisionEnter(Collision collision)
+        /// <summary>중계기(<see cref="BikeCollisionRelay"/>)가 몸체의 충돌을 넘겨줄 때 호출된다.</summary>
+        public void ReportCollision(Collision collision)
         {
             // 레이어 필터 (Nothing = 0 이면 모든 레이어 허용)
             if (collidesWith.value != 0 && (collidesWith.value & (1 << collision.gameObject.layer)) == 0)
@@ -65,15 +84,20 @@ namespace CHG.Bike
 
             float impactSpeed = collision.relativeVelocity.magnitude;
             CollisionTier tier = GetTier(impactSpeed);
-            if (tier == CollisionTier.None)
-                return;
-
-            _lastCollisionTime = Time.time;
 
             bool forcedGround = alwaysGroundLayers.value != 0
                                 && (alwaysGroundLayers.value & (1 << collision.gameObject.layer)) != 0;
 
             PickContact(collision, forcedGround, out Vector3 point, out Vector3 normal, out float normalSpeed, out bool isGround);
+
+            if (logCollisions)
+                Debug.Log($"[BikeCollision] {collision.gameObject.name} / impact {impactSpeed:F1} m/s / " +
+                          $"정면 {normalSpeed:F1} m/s / tier {tier} / {(isGround ? "바닥" : "벽")}", this);
+
+            if (tier == CollisionTier.None)
+                return;
+
+            _lastCollisionTime = Time.time;
 
             var evt = new BikeCollisionEvent(tier, impactSpeed, point, normal, collision, normalSpeed, isGround);
             OnCollision?.Invoke(evt);

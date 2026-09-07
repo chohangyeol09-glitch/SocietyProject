@@ -2,11 +2,17 @@ using UnityEngine;
 
 namespace CHG.Scripts.DeliverySystem
 {
-    [CreateAssetMenu(fileName = "FoodData", menuName = "CHG/Delivery/FoodData", order = 0)]
-    public class FoodDataSO : ScriptableObject
+    [CreateAssetMenu(fileName = "QuestData", menuName = "CHG/Delivery/QuestData", order = 0)]
+    public class QuestDataSO : ScriptableObject
     {
         [Header("Key")]
         [SerializeField] private string foodID;
+
+        [Header("Route")]
+        [Tooltip("DeliveryDestination의 DestinationID와 일치해야 합니다 (출발/픽업 지점).")]
+        [SerializeField] private string originID;
+        [Tooltip("DeliveryDestination의 DestinationID와 일치해야 합니다 (배달 목적지).")]
+        [SerializeField] private string destinationID;
 
         [Header("UI")]
         [SerializeField] private string displayName;
@@ -20,6 +26,8 @@ namespace CHG.Scripts.DeliverySystem
         [SerializeField] private int reward = 1000;
 
         public string FoodID => string.IsNullOrEmpty(foodID) ? name : foodID;
+        public string OriginID => originID;
+        public string DestinationID => destinationID;
         public string DisplayName => string.IsNullOrEmpty(displayName) ? FoodID : displayName;
         public Sprite Icon => icon;
         public string OrderFormat => orderFormat;

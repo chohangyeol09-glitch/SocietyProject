@@ -36,12 +36,22 @@ namespace CHG.Bike
             set => playerWantsControl = value;
         }
 
+        private void Awake()
+        {
+            // BikeModuleOwner 가 없는 씬에서도 동작하도록 부모에서 직접 찾아둔다.
+            // owner 가 있으면 Initialize 에서 같은 참조로 다시 채워진다.
+            _bike = GetComponentInParent<BicycleVehicle>();
+        }
+
         public override void Initialize(ModuleOwner owner)
         {
             base.Initialize(owner);
-            _bike = (owner as BikeModuleOwner)?.Bike;
-            if (_bike == null)
-                _bike = owner.GetComponent<BicycleVehicle>();
+
+            BicycleVehicle fromOwner = (owner as BikeModuleOwner)?.Bike;
+            if (fromOwner == null)
+                fromOwner = owner.GetComponent<BicycleVehicle>();
+            if (fromOwner != null)
+                _bike = fromOwner;
         }
 
         /// <summary>
