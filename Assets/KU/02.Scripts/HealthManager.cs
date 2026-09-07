@@ -46,6 +46,10 @@ public class HealthManager :
         {
             MissionManager.Instance.CompleteAcceptedMission();
         }
+        if(Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            TakeDamage();
+        }
     }
 
 

@@ -1815,15 +1815,15 @@ MonoBehaviour:
   - appName: "\uC74C\uC545\uC571"
     iconTransform: {fileID: 1043298119}
     iconImage: {fileID: 1043298120}
-    appScreenObject: {fileID: 0}
+    appScreenObject: {fileID: 282712769}
   - appName: "\uB9E4\uC2E0\uC800\uC571"
     iconTransform: {fileID: 1565533563}
     iconImage: {fileID: 1565533564}
-    appScreenObject: {fileID: 0}
+    appScreenObject: {fileID: 282712769}
   - appName: "\uD504\uB85C\uD544\uC571"
     iconTransform: {fileID: 2113835371}
     iconImage: {fileID: 2113835372}
-    appScreenObject: {fileID: 0}
+    appScreenObject: {fileID: 282712769}
   homeScreen: {fileID: 1272073260}
   selectionFrame: {fileID: 210711550}
   selectedAlpha: 1
