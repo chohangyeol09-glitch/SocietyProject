@@ -44,7 +44,7 @@ public class HealthManager :
     {
         if(Keyboard.current.kKey.wasPressedThisFrame)
         {
-            TakeDamage();
+            MissionManager.Instance.CompleteAcceptedMission();
         }
     }
 
