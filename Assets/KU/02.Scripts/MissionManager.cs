@@ -3,10 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using CHG.Scripts.DeliverySystem;
+using Random = UnityEngine.Random;
 
 public class MissionManager :
     MonoSingleton<MissionManager>
 {
+    [SerializeField] private DeliveryManager deliveryManager;
+    
     [Header("등장 가능한 퀘스트")]
     [SerializeField]
     private List<QuestDataSO> quests =
@@ -104,6 +107,40 @@ public class MissionManager :
     private void Start()
     {
         StartNextMissionTimer();
+    }
+
+
+    private void OnEnable()
+    {
+        if (deliveryManager != null)
+        {
+            deliveryManager.OnQuestClear += HandleQuestClear;
+            deliveryManager.OnQuestFail += HandleQuestFail;
+        }
+    }
+
+
+    private void OnDisable()
+    {
+        if (deliveryManager != null)
+        {
+            deliveryManager.OnQuestClear -= HandleQuestClear;
+            deliveryManager.OnQuestFail -= HandleQuestFail;
+        }
+    }
+
+
+    // 배달 목적지 도착 = 실제 배달 성공
+    private void HandleQuestClear(DeliveryQuest quest)
+    {
+        CompleteAcceptedMission();
+    }
+
+
+    // 제한시간 초과 등으로 배달 실패
+    private void HandleQuestFail(DeliveryQuest quest, DeliveryPhase phase)
+    {
+        FailAcceptedMission();
     }
 
 
@@ -307,6 +344,8 @@ public class MissionManager :
             $"보상 : {acceptedQuest.Reward}"
         );
 
+        deliveryManager.ActiveQuest(acceptedQuest);
+        
 
         MissionAccepted?.Invoke(
             acceptedQuest

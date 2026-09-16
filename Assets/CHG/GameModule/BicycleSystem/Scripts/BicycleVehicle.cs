@@ -505,7 +505,7 @@ namespace rayzngames
 		#endregion
 	}
 
-	#region CustomInspector
+	/*#region CustomInspector
 	[CustomEditor(typeof(BicycleVehicle))]
 	//We need to extend the Editor
 	public class BicycleInspector : Editor
@@ -536,6 +536,6 @@ namespace rayzngames
 		}		
 	}	
 
-	#endregion
+	#endregion*/
 
 }
